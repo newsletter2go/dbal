@@ -1039,11 +1039,11 @@ class QueryBuilder
         $fromClauses = array();
 
         $alias = ($this->sqlParts['from']['alias'] ? $this->sqlParts['from']['alias'] : $this->sqlParts['from']['table']);
-            $knownAliases[$alias] = true;
-            $fromClause = $this->sqlParts['from']['table'] . ' ' . $alias
-                . $this->getSQLForJoins($alias, $knownAliases);
+        $table = $this->sqlParts['from']['table'] . ($this->sqlParts['from']['alias'] ? ' ' . $this->sqlParts['from']['alias'] : '');
+        $knownAliases[$alias] = true;
+        $fromClause = $table . $this->getSQLForJoins($alias, $knownAliases);
 
-            $fromClauses[$alias] = $fromClause;
+        $fromClauses[$alias] = $fromClause;
 
         foreach ($this->sqlParts['join'] as $fromAlias => $joins) {
             if ( ! isset($knownAliases[$fromAlias]) ) {
