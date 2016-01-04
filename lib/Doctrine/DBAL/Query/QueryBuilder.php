@@ -1188,14 +1188,26 @@ class QueryBuilder
         ' VALUES(' . implode(', ', $this->sqlParts['values']) . ')';
     }
 
-    /**
-     * Converts this instance into an UPDATE string in SQL.
-     *
-     * @return string
-     */
     private function getSQLForUpdate()
     {
+        $fromClauses = array();
+
+        $alias = ($this->sqlParts['from']['alias'] ? $this->sqlParts['from']['alias'] : $this->sqlParts['from']['table']);
         $table = $this->sqlParts['from']['table'] . ($this->sqlParts['from']['alias'] ? ' ' . $this->sqlParts['from']['alias'] : '');
+        $knownAliases[$alias] = true;
+        $fromClause = $table . $this->getSQLForJoins($alias, $knownAliases);
+
+        $fromClauses[$alias] = $fromClause;
+
+        foreach ($this->sqlParts['join'] as $fromAlias => $joins) {
+            if ( ! isset($knownAliases[$fromAlias]) ) {
+                throw QueryException::unknownAlias($fromAlias, array_keys($knownAliases));
+            }
+        }
+
+
+        $table = implode(', ', $fromClauses);
+        #$table = $this->sqlParts['from']['table'] . ($this->sqlParts['from']['alias'] ? ' ' . $this->sqlParts['from']['alias'] : '');
         $query = 'UPDATE ' . $table
             . ' SET ' . implode(", ", $this->sqlParts['set'])
             . ($this->sqlParts['where'] !== null ? ' WHERE ' . ((string) $this->sqlParts['where']) : '');
